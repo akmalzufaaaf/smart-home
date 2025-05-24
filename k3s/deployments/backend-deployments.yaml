@@ -14,9 +14,25 @@ spec:
     spec:
       containers:
         - name: backend
-          image: coelee/backend:latest
+          image: coelee/backend:2.0
           ports:
             - containerPort: 5000
+          env:
+          - name: MONGO_URI
+            value: "mongodb://admin:password@mongodb:27017/" # Sesuaikan jika perlu autentikasi
+          - name: JWT_SECRET_KEY
+              valueFrom: # Contoh mengambil dari Kubernetes Secret
+                secretKeyRef:
+                  name: backend-secrets # Nama Secret yang akan kamu buat
+                  key: jwt_secret # Key di dalam Secret
+          - name: MQTT_BROKER_HOST
+              value: "broker.hivemq.com" # Ganti jika broker MQTT kamu berbeda (misalnya, service di K8s)
+          - name: MQTT_BROKER_PORT
+              value: "1883" # Ganti jika port broker MQTT kamu berbeda
+          - name: MQTT_TOPIC_DEVICE_CONTROL_BASE # Base topic untuk kontrol
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Contoh base topic
+          - name: MQTT_TOPIC_STATUS_BASE # Base topic untuk status
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Contoh base topic
 
 ---
 
