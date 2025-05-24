@@ -30,7 +30,6 @@ def create_user_if_not_exists(username, password_plain):
 with app.app_context():
     create_user_if_not_exists("admin", "adminpassword") # Ganti password ini!
 
-
 init_mqtt(app_db_updater=update_device_status_from_mqtt)
 
 @app.route("/login", methods=["POST"])

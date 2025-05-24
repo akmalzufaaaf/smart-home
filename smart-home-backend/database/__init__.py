@@ -12,3 +12,4 @@ class Database:
         self.users_collection = self.db['users']
         self.logs_collection = self.db['logs']
         self.devices_collection = self.db['devices']
+        print(mongo_uri)
