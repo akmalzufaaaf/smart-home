@@ -1,72 +1,70 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongodb
+  name: backend
   # namespace: smarthome # Opsional
   labels:
-    app: mongodb
+    app: backend
 spec:
-  replicas: 1
+  replicas: 1 # Mulai dengan 1 replika, bisa dinaikkan nanti
   selector:
     matchLabels:
-      app: mongodb
+      app: backend
   template:
     metadata:
       labels:
-        app: mongodb
+        app: backend
     spec:
       containers:
-        - name: mongodb
-          image: mongo:6.0 # Atau versi yang kamu inginkan
+        - name: backend
+          image: coelee/smarthome-backend:v1.0 # Gunakan image yang sudah di-push
           ports:
-            - containerPort: 27017
+            - containerPort: 5000
           env:
-            - name: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_URI
+              # Gunakan username & password dari mongo-secret, dan service name 'mongodb'
+              value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@mongodb:27017/smart_home_prod?authSource=admin"
+              # Atau jika kamu membuat user khusus aplikasi di init-mongo.js:
+              # value: "mongodb://user_aplikasi:password_aplikasi@mongodb:27017/smart_home_prod?authSource=smart_home_prod_atau_admin"
+            - name: MONGO_INITDB_ROOT_USERNAME # Perlu untuk ekspansi di MONGO_URI
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret # Mengambil dari Secret yang sudah dibuat
+                  name: mongo-secret
                   key: mongo-root-username
-            - name: MONGO_INITDB_ROOT_PASSWORD
+            - name: MONGO_INITDB_ROOT_PASSWORD # Perlu untuk ekspansi di MONGO_URI
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret # Mengambil dari Secret
+                  name: mongo-secret
                   key: mongo-root-password
-          volumeMounts:
-            - name: mongodb-persistent-storage
-              mountPath: /data/db # Mount untuk penyimpanan data persisten
-      volumes:
-        - name: mongodb-persistent-storage
-          persistentVolumeClaim:
-            claimName: mongodb-pvc # Kita akan buat PVC ini
----
-apiVersion: v1
-kind: PersistentVolumeClaim # Untuk penyimpanan data MongoDB yang persisten
-metadata:
-  name: mongodb-pvc
-  # namespace: smarthome # Opsional
-  labels:
-    app: mongodb
-spec:
-  accessModes:
-    - ReadWriteOnce # Umum untuk database
-  resources:
-    requests:
-      storage: 5Gi # Sesuaikan ukuran penyimpanan yang dibutuhkan
-  # storageClassName: local-path # Untuk k3s, local-path biasanya default.
-  # Sesuaikan jika kamu menggunakan storage class lain di VPS.
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: jwt-secret-key
+            - name: MQTT_BROKER_HOST
+              value: "broker.hivemq.com" # Alamat broker MQTT eksternal atau service name jika di K8s
+            - name: MQTT_BROKER_PORT
+              value: "1883" # Atau port lain
+            - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+            - name: MQTT_TOPIC_STATUS_BASE
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+            # Tambahkan environment variable lain yang dibutuhkan aplikasi backendmu
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb # Service ini akan memberikan DNS name 'mongodb' di dalam klaster
+  name: backend
   # namespace: smarthome # Opsional
   labels:
-    app: mongodb
+    app: backend
 spec:
   selector:
-    app: mongodb
+    app: backend
   ports:
     - protocol: TCP
-      port: 27017
-      targetPort: 27017
-  type: ClusterIP # Hanya bisa diakses dari dalam klaster
+      port: 80 # Port yang akan diekspos oleh Service ini
+      targetPort: 5000 # Port yang digunakan container backend (Gunicorn)
+  type: LoadBalancer # Atau NodePort, agar bisa diakses dari luar VPS
+  # Jika menggunakan LoadBalancer, k3s akan mencoba menggunakan service load balancer bawaannya (ServiceLB/Klipper).
+  # Untuk NodePort, kamu perlu mengakses IP_VPS:NodePort_yang_dialokasikan.
