@@ -33,16 +33,11 @@ spec:
                   key: mongo-root-password
           volumeMounts:
             - name: mongodb-persistent-storage
-              mountPath: /data/db
-            - name: mongo-initdb-volume # Mount untuk skrip inisialisasi
-              mountPath: /docker-entrypoint-initdb.d 
+              mountPath: /data/db # Mount untuk penyimpanan data persisten
       volumes:
         - name: mongodb-persistent-storage
           persistentVolumeClaim:
             claimName: mongodb-pvc # Kita akan buat PVC ini
-        - name: mongo-initdb-volume # Volume dari ConfigMap
-          configMap:
-            name: mongo-init-script # Nama ConfigMap skrip init
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim # Untuk penyimpanan data MongoDB yang persisten
