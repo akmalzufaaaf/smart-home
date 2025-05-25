@@ -1,12 +1,12 @@
+# k3s/deployments/backend-deployments.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  # namespace: smarthome # Opsional
   labels:
     app: backend
 spec:
-  replicas: 1 # Mulai dengan 1 replika, bisa dinaikkan nanti
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -17,45 +17,46 @@ spec:
     spec:
       containers:
         - name: backend
-          image: coelee/smarthome-backend:v1.0 # Gunakan image yang sudah di-push
+          image: coelee/smarthome-backend:v1.1 # Pastikan image dan tag ini benar
+          imagePullPolicy: Always 
           ports:
             - containerPort: 5000
           env:
-            - name: MONGO_URI
-              # Gunakan username & password dari mongo-secret, dan service name 'mongodb'
-              value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@mongodb:27017/smart_home_prod?authSource=admin"
-              # Atau jika kamu membuat user khusus aplikasi di init-mongo.js:
-              # value: "mongodb://user_aplikasi:password_aplikasi@mongodb:27017/smart_home_prod?authSource=smart_home_prod_atau_admin"
-            - name: MONGO_INITDB_ROOT_USERNAME # Perlu untuk ekspansi di MONGO_URI
+            # Variabel untuk menampung kredensial Atlas dari Secret
+            - name: ATLAS_USER 
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
-                  key: mongo-root-username
-            - name: MONGO_INITDB_ROOT_PASSWORD # Perlu untuk ekspansi di MONGO_URI
+                  name: atlas-credentials # Nama Secret untuk Atlas
+                  key: username
+            - name: ATLAS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
-                  key: mongo-root-password
+                  name: atlas-credentials # Nama Secret untuk Atlas
+                  key: password
+            # MONGO_URI menggunakan variabel ATLAS_USER dan ATLAS_PASSWORD
+            - name: MONGO_URI 
+              value: "mongodb+srv://$(ATLAS_USER):$(ATLAS_PASSWORD)@iot.7l2nbtx.mongodb.net/<NAMA_DATABASE_DI_ATLAS>?retryWrites=true&w=majority"
+            # Variabel MONGO_INITDB_ROOT_USERNAME dan PASSWORD tidak lagi diperlukan di sini
+            # karena kita tidak menginisialisasi MongoDB lokal di klaster.
+
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: backend-secret
+                  name: backend-secret # Pastikan secret ini ada dan berisi jwt-secret-key
                   key: jwt-secret-key
             - name: MQTT_BROKER_HOST
-              value: "broker.hivemq.com" # Alamat broker MQTT eksternal atau service name jika di K8s
+              value: "broker.hivemq.com" 
             - name: MQTT_BROKER_PORT
-              value: "1883" # Atau port lain
+              value: "1883" 
             - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
             - name: MQTT_TOPIC_STATUS_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
-            # Tambahkan environment variable lain yang dibutuhkan aplikasi backendmu
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: backend
-  # namespace: smarthome # Opsional
   labels:
     app: backend
 spec:
@@ -63,8 +64,6 @@ spec:
     app: backend
   ports:
     - protocol: TCP
-      port: 80 # Port yang akan diekspos oleh Service ini
-      targetPort: 5000 # Port yang digunakan container backend (Gunicorn)
-  type: LoadBalancer # Atau NodePort, agar bisa diakses dari luar VPS
-  # Jika menggunakan LoadBalancer, k3s akan mencoba menggunakan service load balancer bawaannya (ServiceLB/Klipper).
-  # Untuk NodePort, kamu perlu mengakses IP_VPS:NodePort_yang_dialokasikan.
+      port: 80 
+      targetPort: 5000 
+  type: LoadBalancer

@@ -26,11 +26,14 @@ def create_user_if_not_exists(username, password_plain):
     else:
         print(f"User {username} already exists.")
 
-# Panggil create_user_if_not_exists saat aplikasi start untuk user admin default
-with app.app_context():
-    create_user_if_not_exists("admin", "adminpassword") # Ganti password ini!
+# # ...
+# with app.app_context():
+#     create_user_if_not_exists("admin", "adminpassword") # Ganti password ini! <-- KOMENTARI INI
+# # ...
 
-
+# Untuk /login, jika masih menggunakan users dictionary lokal, itu tidak masalah.
+# Jika /login sudah diubah untuk cek ke DB, kamu mungkin perlu menyederhanakannya sementara
+# atau pastikan operasi db.users_collection.find_one() tidak error jika koleksi belum ada.
 init_mqtt(app_db_updater=update_device_status_from_mqtt)
 
 @app.route("/login", methods=["POST"])
@@ -74,12 +77,11 @@ def register_device_endpoint():
 
 # endpoint untuk mendapatkan refresh token
 @app.route("/refresh", methods=['POST'])
-@jwt_required(fresh=True)
+@jwt_required(fresh=True) # Gunakan refresh=True
 def refresh():
-    #membuat refresh token baru
     current_user = get_jwt_identity()
-    refresh_token = create_refresh_token(identity=current_user)
-    return jsonify(refresh_token=refresh_token), 200
+    access_token = create_access_token(identity=current_user, fresh=False) # Buat access token baru
+    return jsonify(access_token=access_token), 200 # Kirim access token baru
 
 # endpoint yang membutuhkan jwt token
 @app.route("/protected", methods=['GET'])
