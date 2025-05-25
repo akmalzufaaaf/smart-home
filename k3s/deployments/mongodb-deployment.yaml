@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongodb
+  # namespace: smarthome # Opsional
+  labels:
+    app: mongodb
 spec:
   replicas: 1
   selector:
@@ -14,19 +17,56 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: mongo:latest
+          image: mongo:6.0 # Atau versi yang kamu inginkan
           ports:
             - containerPort: 27017
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret # Mengambil dari Secret yang sudah dibuat
+                  key: mongo-root-username
             - name: MONGO_INITDB_ROOT_PASSWORD
-              value: "password"
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret # Mengambil dari Secret
+                  key: mongo-root-password
+          volumeMounts:
+            - name: mongodb-persistent-storage
+              mountPath: /data/db
+            - name: mongo-initdb-volume # Mount untuk skrip inisialisasi
+              mountPath: /docker-entrypoint-initdb.d 
+      volumes:
+        - name: mongodb-persistent-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pvc # Kita akan buat PVC ini
+        - name: mongo-initdb-volume # Volume dari ConfigMap
+          configMap:
+            name: mongo-init-script # Nama ConfigMap skrip init
+---
+apiVersion: v1
+kind: PersistentVolumeClaim # Untuk penyimpanan data MongoDB yang persisten
+metadata:
+  name: mongodb-pvc
+  # namespace: smarthome # Opsional
+  labels:
+    app: mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce # Umum untuk database
+  resources:
+    requests:
+      storage: 5Gi # Sesuaikan ukuran penyimpanan yang dibutuhkan
+  # storageClassName: local-path # Untuk k3s, local-path biasanya default.
+  # Sesuaikan jika kamu menggunakan storage class lain di VPS.
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb
+  name: mongodb # Service ini akan memberikan DNS name 'mongodb' di dalam klaster
+  # namespace: smarthome # Opsional
+  labels:
+    app: mongodb
 spec:
   selector:
     app: mongodb
@@ -34,4 +74,4 @@ spec:
     - protocol: TCP
       port: 27017
       targetPort: 27017
-  type: ClusterIP
+  type: ClusterIP # Hanya bisa diakses dari dalam klaster

@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  # namespace: smarthome # Opsional
+  labels:
+    app: backend
 spec:
-  replicas: 2
+  replicas: 1 # Mulai dengan 1 replika, bisa dinaikkan nanti
   selector:
     matchLabels:
       app: backend
@@ -14,37 +17,54 @@ spec:
     spec:
       containers:
         - name: backend
-          image: coelee/backend:2.0
+          image: coelee/smarthome-backend:v1.0 # Gunakan image yang sudah di-push
           ports:
             - containerPort: 5000
           env:
-          - name: MONGO_URI
-            value: "mongodb://admin:password@mongodb:27017/" # Sesuaikan jika perlu autentikasi
-          - name: JWT_SECRET_KEY
-              valueFrom: # Contoh mengambil dari Kubernetes Secret
+            - name: MONGO_URI
+              # Gunakan username & password dari mongo-secret, dan service name 'mongodb'
+              value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@mongodb:27017/smart_home_prod?authSource=admin"
+              # Atau jika kamu membuat user khusus aplikasi di init-mongo.js:
+              # value: "mongodb://user_aplikasi:password_aplikasi@mongodb:27017/smart_home_prod?authSource=smart_home_prod_atau_admin"
+            - name: MONGO_INITDB_ROOT_USERNAME # Perlu untuk ekspansi di MONGO_URI
+              valueFrom:
                 secretKeyRef:
-                  name: backend-secrets # Nama Secret yang akan kamu buat
-                  key: jwt_secret # Key di dalam Secret
-          - name: MQTT_BROKER_HOST
-              value: "broker.hivemq.com" # Ganti jika broker MQTT kamu berbeda (misalnya, service di K8s)
-          - name: MQTT_BROKER_PORT
-              value: "1883" # Ganti jika port broker MQTT kamu berbeda
-          - name: MQTT_TOPIC_DEVICE_CONTROL_BASE # Base topic untuk kontrol
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Contoh base topic
-          - name: MQTT_TOPIC_STATUS_BASE # Base topic untuk status
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Contoh base topic
-
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD # Perlu untuk ekspansi di MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: jwt-secret-key
+            - name: MQTT_BROKER_HOST
+              value: "broker.hivemq.com" # Alamat broker MQTT eksternal atau service name jika di K8s
+            - name: MQTT_BROKER_PORT
+              value: "1883" # Atau port lain
+            - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+            - name: MQTT_TOPIC_STATUS_BASE
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+            # Tambahkan environment variable lain yang dibutuhkan aplikasi backendmu
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: backend
+  # namespace: smarthome # Opsional
+  labels:
+    app: backend
 spec:
   selector:
     app: backend
   ports:
     - protocol: TCP
-      port: 5000
-      targetPort: 5000
-  type: ClusterIP
+      port: 80 # Port yang akan diekspos oleh Service ini
+      targetPort: 5000 # Port yang digunakan container backend (Gunicorn)
+  type: LoadBalancer # Atau NodePort, agar bisa diakses dari luar VPS
+  # Jika menggunakan LoadBalancer, k3s akan mencoba menggunakan service load balancer bawaannya (ServiceLB/Klipper).
+  # Untuk NodePort, kamu perlu mengakses IP_VPS:NodePort_yang_dialokasikan.
