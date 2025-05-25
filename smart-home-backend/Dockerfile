@@ -1,24 +1,19 @@
-# Gunakan image Python 3.8 sebagai base image
-FROM python:3.9-slim
+# Gunakan base image Python yang sesuai
+FROM python:3.10-slim
 
 # Set working directory di dalam container
 WORKDIR /app
 
-# Salin requirements.txt ke dalam container
-COPY requirements.txt /app/
-
-# Install dependensi yang ada di requirements.txt
+# Salin file requirements dan install dependencies
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Salin semua kode aplikasi ke dalam container
-COPY . /app/
+# Salin semua file aplikasi ke working directory
+COPY . .
 
-# Set environment variable untuk Flask
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-
-# Expose port Flask
+# Expose port yang digunakan Flask (default 5000)
 EXPOSE 5000
 
-# Jalankan aplikasi Flask
-CMD ["flask", "run"]
+# Perintah untuk menjalankan aplikasi menggunakan Gunicorn (server WSGI produksi)
+# Sesuaikan jumlah worker jika perlu
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
