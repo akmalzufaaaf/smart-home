@@ -3,11 +3,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  # namespace: smarthome # Opsional
   labels:
     app: backend
 spec:
-  replicas: 1 # Mulai dengan 1 replika, bisa dinaikkan nanti
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -18,49 +17,32 @@ spec:
     spec:
       containers:
         - name: backend
-          image: coelee/smarthome-backend:v1.1 # Pastikan ini image yang benar dan sudah di-push
-          imagePullPolicy: Always # Baik untuk pengembangan agar selalu menarik versi terbaru
+          image: coelee/smarthome-backend:v1.1 # Pastikan image dan tag ini benar
+          imagePullPolicy: Always 
           ports:
             - containerPort: 5000
           env:
-            - name: MONGO_URI
-              # Jika menggunakan MongoDB Atlas, value ini harus connection string dari Atlas.
-              # Kredensial sebaiknya diambil dari Secret, bukan di-hardcode.
-              # Contoh di bawah akan diperbaiki.
-              value: "mongodb+srv://akmal:akmal@iot.7l2nbtx.mongodb.net/" # PERLU PENYESUAIAN
-            
-            # Variabel MONGO_INITDB_ROOT_USERNAME dan MONGO_INITDB_ROOT_PASSWORD
-            # TIDAK relevan lagi jika kamu menggunakan MongoDB Atlas karena
-            # pengguna dibuat di Atlas, bukan oleh image Docker MongoDB.
-            # Jadi, dua blok env var berikut ini bisa DIHAPUS jika targetmu Atlas.
-            # - name: MONGO_INITDB_ROOT_USERNAME 
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: mongo-secret 
-            #       key: mongo-root-username
-            # - name: MONGO_INITDB_ROOT_PASSWORD 
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: mongo-secret
-            #       key: mongo-root-password
-
-            # Jika menggunakan Atlas, buat Secret baru untuk kredensial Atlas
-            # Misalnya, Secret 'atlas-credentials' dengan key 'username' dan 'password'
+            # Variabel untuk menampung kredensial Atlas dari Secret
             - name: ATLAS_USER 
               valueFrom:
                 secretKeyRef:
-                  name: atlas-credentials # Ganti dengan nama Secret untuk Atlas
-                  key: username 
+                  name: atlas-credentials # Nama Secret untuk Atlas
+                  key: username
             - name: ATLAS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: atlas-credentials # Ganti dengan nama Secret untuk Atlas
+                  name: atlas-credentials # Nama Secret untuk Atlas
                   key: password
+            # MONGO_URI menggunakan variabel ATLAS_USER dan ATLAS_PASSWORD
+            - name: MONGO_URI 
+              value: "mongodb+srv://$(ATLAS_USER):$(ATLAS_PASSWORD)@iot.7l2nbtx.mongodb.net/<NAMA_DATABASE_DI_ATLAS>?retryWrites=true&w=majority"
+            # Variabel MONGO_INITDB_ROOT_USERNAME dan PASSWORD tidak lagi diperlukan di sini
+            # karena kita tidak menginisialisasi MongoDB lokal di klaster.
 
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: backend-secret
+                  name: backend-secret # Pastikan secret ini ada dan berisi jwt-secret-key
                   key: jwt-secret-key
             - name: MQTT_BROKER_HOST
               value: "broker.hivemq.com" 
@@ -69,16 +51,12 @@ spec:
             - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
               value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
             - name: MQTT_TOPIC_STATUS_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device"
-            # Tambahkan FLASK_ENV=production jika ini untuk produksi
-            # - name: FLASK_ENV
-            #   value: "production"
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: backend
-  # namespace: smarthome # Opsional
   labels:
     app: backend
 spec:
