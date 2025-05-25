@@ -1,3 +1,4 @@
+# k3s/deployments/backend-deployments.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,39 +18,61 @@ spec:
     spec:
       containers:
         - name: backend
-          image: coelee/smarthome-backend:v1.0 # Gunakan image yang sudah di-push
+          image: coelee/smarthome-backend:v1.1 # Pastikan ini image yang benar dan sudah di-push
+          imagePullPolicy: Always # Baik untuk pengembangan agar selalu menarik versi terbaru
           ports:
             - containerPort: 5000
           env:
             - name: MONGO_URI
-              # Gunakan username & password dari mongo-secret, dan service name 'mongodb'
-              value: "mongodb://$(MONGO_INITDB_ROOT_USERNAME):$(MONGO_INITDB_ROOT_PASSWORD)@mongodb:27017/smart_home_prod?authSource=admin"
-              # Atau jika kamu membuat user khusus aplikasi di init-mongo.js:
-              # value: "mongodb://user_aplikasi:password_aplikasi@mongodb:27017/smart_home_prod?authSource=smart_home_prod_atau_admin"
-            - name: MONGO_INITDB_ROOT_USERNAME # Perlu untuk ekspansi di MONGO_URI
+              # Jika menggunakan MongoDB Atlas, value ini harus connection string dari Atlas.
+              # Kredensial sebaiknya diambil dari Secret, bukan di-hardcode.
+              # Contoh di bawah akan diperbaiki.
+              value: "mongodb+srv://akmal:akmal@iot.7l2nbtx.mongodb.net/" # PERLU PENYESUAIAN
+            
+            # Variabel MONGO_INITDB_ROOT_USERNAME dan MONGO_INITDB_ROOT_PASSWORD
+            # TIDAK relevan lagi jika kamu menggunakan MongoDB Atlas karena
+            # pengguna dibuat di Atlas, bukan oleh image Docker MongoDB.
+            # Jadi, dua blok env var berikut ini bisa DIHAPUS jika targetmu Atlas.
+            # - name: MONGO_INITDB_ROOT_USERNAME 
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: mongo-secret 
+            #       key: mongo-root-username
+            # - name: MONGO_INITDB_ROOT_PASSWORD 
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: mongo-secret
+            #       key: mongo-root-password
+
+            # Jika menggunakan Atlas, buat Secret baru untuk kredensial Atlas
+            # Misalnya, Secret 'atlas-credentials' dengan key 'username' dan 'password'
+            - name: ATLAS_USER 
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
-                  key: mongo-root-username
-            - name: MONGO_INITDB_ROOT_PASSWORD # Perlu untuk ekspansi di MONGO_URI
+                  name: atlas-credentials # Ganti dengan nama Secret untuk Atlas
+                  key: username 
+            - name: ATLAS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
-                  key: mongo-root-password
+                  name: atlas-credentials # Ganti dengan nama Secret untuk Atlas
+                  key: password
+
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: backend-secret
                   key: jwt-secret-key
             - name: MQTT_BROKER_HOST
-              value: "broker.hivemq.com" # Alamat broker MQTT eksternal atau service name jika di K8s
+              value: "broker.hivemq.com" 
             - name: MQTT_BROKER_PORT
-              value: "1883" # Atau port lain
+              value: "1883" 
             - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
             - name: MQTT_TOPIC_STATUS_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" # Sesuaikan
-            # Tambahkan environment variable lain yang dibutuhkan aplikasi backendmu
+              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device"
+            # Tambahkan FLASK_ENV=production jika ini untuk produksi
+            # - name: FLASK_ENV
+            #   value: "production"
 ---
 apiVersion: v1
 kind: Service
@@ -63,8 +86,6 @@ spec:
     app: backend
   ports:
     - protocol: TCP
-      port: 80 # Port yang akan diekspos oleh Service ini
-      targetPort: 5000 # Port yang digunakan container backend (Gunicorn)
-  type: LoadBalancer # Atau NodePort, agar bisa diakses dari luar VPS
-  # Jika menggunakan LoadBalancer, k3s akan mencoba menggunakan service load balancer bawaannya (ServiceLB/Klipper).
-  # Untuk NodePort, kamu perlu mengakses IP_VPS:NodePort_yang_dialokasikan.
+      port: 80 
+      targetPort: 5000 
+  type: LoadBalancer

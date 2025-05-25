@@ -4,3 +4,4 @@ paho-mqtt==2.1.0
 pymongo==4.13.0
 gunicorn==23.0.0
 Flask-CORS
+python-dotenv 
