@@ -27,8 +27,8 @@ def create_user_if_not_exists(username, password_plain):
         print(f"User {username} already exists.")
 
 # # ...
-# with app.app_context():
-#     create_user_if_not_exists("admin", "adminpassword") # Ganti password ini! <-- KOMENTARI INI
+with app.app_context():
+    create_user_if_not_exists("admin", "adminpassword") # Ganti password ini! <-- KOMENTARI INI
 # # ...
 
 # Untuk /login, jika masih menggunakan users dictionary lokal, itu tidak masalah.

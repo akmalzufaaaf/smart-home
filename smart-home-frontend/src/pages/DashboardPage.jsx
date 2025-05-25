@@ -1,14 +1,14 @@
 // src/pages/DashboardPage.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import mqtt from 'mqtt/dist/mqtt'; // Pastikan import versi browser
+import * as mqtt from 'mqtt';
 import { fetchDevices, toggleDeviceApi } from '../services/apiService';
-import DeviceCard from '../components/DeviceCard';
+import DeviceCard from '../components/DeviceCards.jsx';
 import {
   MQTT_BROKER_URL,
   MQTT_USERNAME,
   MQTT_PASSWORD,
   MQTT_TOPIC_STATUS_BASE,
-} from '../config/constants';
+} from '../config/contants.js';
 
 function DashboardPage({ onLogout }) {
   const [devices, setDevices] = useState([]);

@@ -1,5 +1,5 @@
 // src/config/constants.js
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'http://103.106.231.24:32379';
 
 // Ganti dengan URL broker MQTT WebSocket kamu
 export const MQTT_BROKER_URL = 'ws://broker.hivemq.com:8000/mqtt';

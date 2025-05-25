@@ -5,9 +5,15 @@ import React from 'react';
 function DeviceCard({ device, onToggle }) {
   if (!device) return null;
 
-  const handleToggleClick = ().jsx
+  // PERBAIKAN: Definisikan sebagai fungsi arrow yang benar
+  const handleToggleClick = () => { 
     const newAction = device.status === 'ON' ? 'OFF' : 'ON';
-    onToggle(device.device_id, newAction); // Kirim device_id dan action baru
+    // Pastikan device.device_id ada dan onToggle adalah fungsi
+    if (device && typeof device.device_id !== 'undefined' && typeof onToggle === 'function') {
+      onToggle(device.device_id, newAction); // Kirim device_id dan action baru
+    } else {
+      console.error("Device ID tidak valid atau onToggle bukan fungsi", device);
+    }
   };
 
   return (
@@ -20,6 +26,6 @@ function DeviceCard({ device, onToggle }) {
       </button>
     </div>
   );
-};
+} // Titik koma di sini bisa dihilangkan untuk konsistensi
 
 export default DeviceCard;

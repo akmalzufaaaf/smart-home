@@ -1,6 +1,6 @@
 // src/services/apiService.js
 import axios from 'axios';
-import { API_BASE_URL, MQTT_BROKER_URL /*, konstanta lainnya */ } from '../config/constants.js'; 
+import { API_BASE_URL, MQTT_BROKER_URL /*, konstanta lainnya */ } from '../config/contants.js'; 
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
