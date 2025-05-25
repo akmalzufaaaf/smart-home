@@ -3,15 +3,18 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:6.0 # Atau mongo:5.0
-    container_name: local-mongo-auth # Nama kontainer baru agar tidak konflik
+    image: mongo:6.0
+    container_name: local-mongo-auth
     restart: unless-stopped
+    command: mongod --auth # Tambahkan ini
     ports:
       - "27017:27017"
     volumes:
       - ./mongo-init-db:/docker-entrypoint-initdb.d
-      - mongodb_auth_data:/data/db # Volume baru untuk data dengan auth
-    # Tidak perlu environment vars untuk user/pass di sini karena skrip init
+      - mongodb_auth_data:/data/db
+    # environment: # Tidak wajib jika init.js menangani user, tapi tidak berbahaya
+    #   MONGO_INITDB_ROOT_USERNAME: admin 
+    #   MONGO_INITDB_ROOT_PASSWORD: password
 
 volumes:
   mongodb_auth_data:
