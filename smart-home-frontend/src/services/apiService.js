@@ -172,3 +172,26 @@ export const logoutUser = () => {
     clearTokens();
     // Tambahkan logika lain jika perlu, misalnya mengarahkan ke halaman login
 };
+
+// src/services/apiService.js
+// ... (kode yang sudah ada) ...
+
+export const fetchUsers = async () => {
+  try {
+    const response = await apiClient.get('/api/users'); // Endpoint baru
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch users:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to fetch users');
+  }
+};
+
+export const fetchLogs = async () => { // Fungsi untuk mengambil semua log
+  try {
+    const response = await apiClient.get('/api/logs');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch logs:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to fetch logs');
+  }
+};
