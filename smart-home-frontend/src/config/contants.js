@@ -2,7 +2,7 @@
 export const API_BASE_URL = 'http://103.106.231.24:32379';
 
 // Ganti dengan URL broker MQTT WebSocket kamu
-export const MQTT_BROKER_URL = 'ws://broker.hivemq.com:8000/mqtt';
+export const MQTT_BROKER_URL = 'ws://localhost:9001';
 export const MQTT_USERNAME = ''; // Isi jika perlu
 export const MQTT_PASSWORD = ''; // Isi jika perlu
 

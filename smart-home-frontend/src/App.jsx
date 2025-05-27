@@ -1,35 +1,53 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage'; // Pastikan ini ada
-import { logoutUser } from './services/apiService';
-import './App.css'; // Kamu bisa menggunakan App.css atau index.css untuk styling dasar
+import DashboardPage from './pages/DashboardPage';
+import { logoutUser, clearTokens } from './services/apiService'; // Import clearTokens juga jika belum
+import './App.css';
 
+  // src/App.jsx
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken')); // Inisialisasi dari localStorage
 
-  // Cek token saat aplikasi pertama kali dimuat
-  useEffect(() => {
+  const checkAuth = useCallback(() => { // Gunakan useCallback jika diteruskan ke dependency array
     const token = localStorage.getItem('accessToken');
-    if (token) {
-      setIsAuthenticated(true);
-    }
+    setIsAuthenticated(!!token);
   }, []);
 
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
+  useEffect(() => {
+    checkAuth(); 
 
-  const handleLogout = () => {
-    logoutUser();
+    const handleAuthChange = () => checkAuth();
+    // Jika ada event kustom untuk perubahan auth di storage antar tab (jarang diperlukan untuk app sederhana)
+    // window.addEventListener('storage', handleAuthChange); 
+    window.addEventListener('auth-error-logout', handleAuthErrorLogout); // Dari apiService
+
+    return () => {
+      // window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth-error-logout', handleAuthErrorLogout);
+    };
+  }, [checkAuth]);
+
+  const handleAuthErrorLogout = useCallback(() => { // Gunakan useCallback
+    console.log('Auth error event received, logging out...');
+    clearTokens();
     setIsAuthenticated(false);
-  };
+  }, []);
+
+  const handleLoginSuccess = useCallback(() => { // Gunakan useCallback
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(() => { // Gunakan useCallback
+    logoutUser(); // Ini memanggil clearTokens()
+    setIsAuthenticated(false);
+  }, []);
 
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  return <DashboardPage onLogout={handleLogout} />; // Ganti bagian ini
+  return <DashboardPage onLogout={handleLogout} />;
 }
 
 export default App;

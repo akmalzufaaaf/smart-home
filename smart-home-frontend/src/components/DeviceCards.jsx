@@ -16,16 +16,25 @@ function DeviceCard({ device, onToggle }) {
     }
   };
 
+  const deviceName = device.name || device.device_id || "Nama Tidak Ada";
+  const deviceType = device.type || 'N/A';
+  const deviceStatus = typeof device.status === 'string' ? device.status.toUpperCase() : 'UNKNOWN';
+
   return (
-    <div className={`device-card ${device.status === 'ON' ? 'device-on' : 'device-off'}`}>
-      <h3>{device.name || device.device_id}</h3>
-      <p>Tipe: {device.type || 'N/A'}</p>
-      <p>Status: <strong>{device.status}</strong></p>
-      <button onClick={handleToggleClick}>
-        {device.status === 'ON' ? 'Matikan' : 'Nyalakan'}
+    // Terapkan kelas CSS dinamis untuk status ON/OFF
+    <div className={`device-card ${deviceStatus === 'ON' ? 'device-on' : 'device-off'}`}>
+      <div className="card-header"> 
+        {/* Tambahkan ikon di sini jika mau, contoh: */}
+        {/* {deviceType === 'relay' && <LightBulbIcon className="device-icon" />} */}
+        <h3>{deviceName}</h3>
+      </div>
+      <p>Tipe: {deviceType}</p>
+      <p>Status: <strong>{deviceStatus}</strong></p>
+      <button onClick={handleToggleClick} className="toggle-button"> {/* Terapkan kelas CSS */}
+        {deviceStatus === 'ON' ? 'Matikan' : 'Nyalakan'}
       </button>
     </div>
   );
-} // Titik koma di sini bisa dihilangkan untuk konsistensi
+}
 
 export default DeviceCard;

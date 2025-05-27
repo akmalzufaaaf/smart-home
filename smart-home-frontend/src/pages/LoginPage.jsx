@@ -1,8 +1,8 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { loginUser } from '../services/apiService';
+// import './LoginPage.css'; // Jika kamu membuat file CSS terpisah
 
-// Terima prop 'onLoginSuccess' untuk memberi tahu App.jsx bahwa login berhasil
 function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,10 +24,10 @@ function LoginPage({ onLoginSuccess }) {
   };
 
   return (
-    <div>
-      <h2>Login Smarthome</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
+    <div className="login-page"> {/* Terapkan kelas CSS */}
+      <form onSubmit={handleSubmit} className="login-form"> {/* Terapkan kelas CSS */}
+        <h2>Login Smarthome</h2>
+        <div className="form-group"> {/* Terapkan kelas CSS */}
           <label htmlFor="username">Username:</label>
           <input
             type="text"
@@ -37,7 +37,7 @@ function LoginPage({ onLoginSuccess }) {
             required
           />
         </div>
-        <div>
+        <div className="form-group"> {/* Terapkan kelas CSS */}
           <label htmlFor="password">Password:</label>
           <input
             type="password"
@@ -47,8 +47,8 @@ function LoginPage({ onLoginSuccess }) {
             required
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" disabled={loading}>
+        {error && <p className="login-error">{error}</p>} {/* Terapkan kelas CSS */}
+        <button type="submit" disabled={loading} className="login-button"> {/* Terapkan kelas CSS */}
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
