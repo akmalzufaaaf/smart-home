@@ -1,5 +1,11 @@
 // src/components/DeviceCard.jsx
 import React from 'react';
+import { 
+  LightBulbIcon, // Untuk tipe 'relay' atau 'lampu'
+  AdjustmentsHorizontalIcon, // Untuk tipe 'relay' umum
+  CpuChipIcon, // Untuk tipe 'sensor'
+  QuestionMarkCircleIcon // Default jika tipe tidak dikenali
+} from '@heroicons/react/24/outline'; 
 
 // Terima prop onToggle dari parent
 function DeviceCard({ device, onToggle }) {
@@ -17,20 +23,29 @@ function DeviceCard({ device, onToggle }) {
   };
 
   const deviceName = device.name || device.device_id || "Nama Tidak Ada";
-  const deviceType = device.type || 'N/A';
+  const deviceType = device.type || 'unknown'; // Beri default jika tipe tidak ada
   const deviceStatus = typeof device.status === 'string' ? device.status.toUpperCase() : 'UNKNOWN';
 
+  // Pilih ikon berdasarkan tipe perangkat
+  let DeviceTypeIcon = QuestionMarkCircleIcon; // Default
+  if (deviceType.toLowerCase().includes('lampu') || (deviceType.toLowerCase() === 'relay' && deviceName.toLowerCase().includes('lampu'))) {
+    DeviceTypeIcon = LightBulbIcon;
+  } else if (deviceType.toLowerCase() === 'relay') {
+    DeviceTypeIcon = AdjustmentsHorizontalIcon;
+  } else if (deviceType.toLowerCase() === 'sensor') {
+    DeviceTypeIcon = CpuChipIcon;
+  }
+  // Tambahkan kondisi lain untuk tipe perangkat yang berbeda
+
   return (
-    // Terapkan kelas CSS dinamis untuk status ON/OFF
     <div className={`device-card ${deviceStatus === 'ON' ? 'device-on' : 'device-off'}`}>
       <div className="card-header"> 
-        {/* Tambahkan ikon di sini jika mau, contoh: */}
-        {/* {deviceType === 'relay' && <LightBulbIcon className="device-icon" />} */}
+        <DeviceTypeIcon className="device-icon" /> {/* Tampilkan ikon */}
         <h3>{deviceName}</h3>
       </div>
       <p>Tipe: {deviceType}</p>
       <p>Status: <strong>{deviceStatus}</strong></p>
-      <button onClick={handleToggleClick} className="toggle-button"> {/* Terapkan kelas CSS */}
+      <button onClick={handleToggleClick} className="toggle-button">
         {deviceStatus === 'ON' ? 'Matikan' : 'Nyalakan'}
       </button>
     </div>

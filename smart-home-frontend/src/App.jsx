@@ -7,6 +7,14 @@ import UserManagementPage from './pages/UserManagementPage';
 import RfidLogPage from './pages/RfidLogPage';
 import ManageDevicesPage from './pages/ManageDevicesPage';
 import { logoutUser, clearTokens } from './services/apiService';
+import { 
+  HomeIcon as DashboardIcon, // Mengganti nama agar lebih jelas
+  UsersIcon, 
+  ClipboardDocumentListIcon as LogIcon, // Mengganti nama
+  Cog6ToothIcon as ManageDeviceIcon, // Mengganti nama
+  ArrowLeftOnRectangleIcon as LogoutIcon,
+  HomeModernIcon // Untuk brand/logo utama
+} from '@heroicons/react/24/outline';
 import './App.css';
 
 function ProtectedRoute({ isAuthenticated, children }) {
@@ -17,26 +25,29 @@ function ProtectedRoute({ isAuthenticated, children }) {
 }
 
 // Komponen AppLayout sekarang akan menerima mqttStatus
-function AppLayout({ onLogout, children, mqttStatus }) { // Tambahkan prop mqttStatus
+function AppLayout({ onLogout, children, mqttStatus }) {
   return (
     <div className="app-layout">
       <nav className="main-nav">
         <div className="nav-brand">
-          <Link to="/">Smarthome Panel</Link> {/* Contoh Brand/Nama Aplikasi */}
+          <Link to="/">
+            <HomeModernIcon className="nav-brand-icon" /> Smarthome
+          </Link>
         </div>
         <ul>
-          <li><Link to="/">Dashboard</Link></li>
-          <li><Link to="/users">Pengguna</Link></li>
-          <li><Link to="/rfid-logs">Log RFID</Link></li>
-          {/* Tambahkan menu untuk Manajemen Perangkat nanti */}
-          <li><Link to="/manage-devices">Kelola Perangkat</Link></li> 
+          <li><Link to="/"><DashboardIcon className="nav-menu-icon" />Dashboard</Link></li>
+          <li><Link to="/users"><UsersIcon className="nav-menu-icon" />Pengguna</Link></li>
+          <li><Link to="/rfid-logs"><LogIcon className="nav-menu-icon" />Log RFID</Link></li>
+          <li><Link to="/manage-devices"><ManageDeviceIcon className="nav-menu-icon" />Kelola Perangkat</Link></li>
         </ul>
-        <div className="nav-right-section"> {/* Wadah untuk status MQTT dan tombol logout */}
-          <div className="mqtt-status-nav"> {/* Kelas baru untuk status MQTT di navigasi */}
+        <div className="nav-right-section">
+          <div className="mqtt-status-nav">
             <span className={`status-indicator ${mqttStatus ? mqttStatus.toLowerCase() : 'disconnected'}`}></span>
             MQTT: {mqttStatus || 'Disconnected'}
           </div>
-          <button onClick={onLogout} className="logout-button-nav">Logout</button>
+          <button onClick={onLogout} className="logout-button-nav">
+            <LogoutIcon className="nav-menu-icon logout-icon-button" /> Logout
+          </button>
         </div>
       </nav>
       <main className="content-area">
