@@ -195,3 +195,27 @@ export const fetchLogs = async () => { // Fungsi untuk mengambil semua log
     throw error.response?.data || new Error('Failed to fetch logs');
   }
 };
+
+// src/services/apiService.js
+// ... (kode yang sudah ada) ...
+
+export const registerDeviceApi = async (deviceData) => {
+  try {
+    // Endpointnya adalah /api/device/register, bukan /api/devices/register
+    const response = await apiClient.post('/api/device/register', deviceData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to register device:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to register device');
+  }
+};
+
+export const deleteDeviceApi = async (deviceId) => {
+  try {
+    const response = await apiClient.delete(`/api/device/${deviceId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to delete device ${deviceId}:`, error.response?.data || error.message);
+    throw error.response?.data || new Error(`Failed to delete device ${deviceId}`);
+  }
+};

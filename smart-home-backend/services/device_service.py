@@ -95,3 +95,20 @@ def update_device_status_from_mqtt(device_id: str, status: str):
         "timestamp": current_time
     }
     db.logs_collection.insert_one(log_entry)
+
+def delete_device(device_id: str):
+    db = Database()
+    result = db.devices_collection.delete_one({"device_id": device_id})
+    if result.deleted_count > 0:
+        # Catat log penghapusan perangkat
+        log_entry = {
+            "device_id": device_id,
+            "action": "deleted",
+            "source": "api_delete",
+            "timestamp": datetime.utcnow()
+        }
+        db.logs_collection.insert_one(log_entry)
+        print(f"Device {device_id} deleted from DB.")
+        return True
+    print(f"Device {device_id} not found for deletion.")
+    return False

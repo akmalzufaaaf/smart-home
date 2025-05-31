@@ -15,7 +15,6 @@ function DashboardPage({ onLogout }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [mqttClient, setMqttClient] = useState(null);
-  const [mqttStatus, setMqttStatus] = useState('Disconnected');
   
   const devicesRef = useRef(devices); // Untuk akses `devices` terbaru di callback MQTT
 
@@ -82,96 +81,35 @@ function DashboardPage({ onLogout }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [MQTT_BROKER_URL, MQTT_USERNAME, MQTT_PASSWORD]); // Dependensi hanya pada konfigurasi broker
 
-  // 2. Effect untuk menangani event-event dari mqttClient (connect, message, error, close, reconnect)
+ // 2. Effect untuk menangani event-event dari mqttClient
   useEffect(() => {
-    if (!mqttClient) { // Hanya pasang listener jika client sudah dibuat
-      return;
-    }
-
-    console.log('MQTT Effect (2 - Client Instance Ready): Attaching event listeners.');
-
+    if (!mqttClient) return;
     const handleConnect = () => {
-      setMqttStatus('Connected');
+      setGlobalMqttStatus('Connected'); // Gunakan setGlobalMqttStatus
       console.log('MQTT: Connected!');
-      // Logika subscribe dipindahkan ke effect #3
     };
-
-    const handleMessage = (topic, message) => {
-      const messageString = message.toString().toUpperCase();
-      console.log(`MQTT RAW MESSAGE RECEIVED: Topic='${topic}', Payload='${messageString}'`);
-      
-      const baseTopicParts = MQTT_TOPIC_STATUS_BASE.split('/').length;
-      const topicParts = topic.split('/');
-      
-      if (topic.startsWith(MQTT_TOPIC_STATUS_BASE) && 
-          topic.endsWith("/status") && 
-          topicParts.length === baseTopicParts + 2) { 
-          
-        const deviceIdFromTopic = topicParts[baseTopicParts];
-        console.log(`MQTT DEBUG: Extracted deviceIdFromTopic: ${deviceIdFromTopic} from topic ${topic}`);
-
-        setDevices(prevDevices => {
-          console.log(`MQTT DEBUG: Updating devices state for ${deviceIdFromTopic}. prevDevices:`, prevDevices);
-          let deviceActuallyUpdated = false;
-          const updatedDevices = prevDevices.map(d => {
-            if (d.device_id === deviceIdFromTopic) {
-              if (d.status !== messageString) {
-                console.log(`MQTT DEBUG: Device found and status changed! ID: ${d.device_id}. Old status: ${d.status}, New status: ${messageString}`);
-                deviceActuallyUpdated = true;
-                return { ...d, status: messageString };
-              } else {
-                console.log(`MQTT DEBUG: Device found but status is the same. ID: ${d.device_id}. Status: ${messageString}`);
-              }
-            }
-            return d;
-          });
-
-          if (deviceActuallyUpdated) {
-            console.log(`MQTT DEBUG: Devices state WILL be updated. updatedDevices:`, updatedDevices);
-            return updatedDevices;
-          } else {
-            console.log(`MQTT DEBUG: No actual change in device statuses for ${deviceIdFromTopic}, or device not found. Returning previous state.`);
-            return prevDevices; 
-          }
-        });
-      } else {
-          console.warn("MQTT DEBUG: Message on unhandled topic structure or not a status update:", topic, "Base:", MQTT_TOPIC_STATUS_BASE);
-      }
-    };
-
+    const handleMessage = (topic, message) => { /* ... logika handleMessage tetap sama, gunakan setDevices ... */ };
     const handleError = (err) => {
-      setMqttStatus('Error');
+      setGlobalMqttStatus('Error'); // Gunakan setGlobalMqttStatus
       console.error('MQTT Connection Error:', err.message, err); 
     };
-
     const handleClose = () => {
-      setMqttStatus('Disconnected');
+      setGlobalMqttStatus('Disconnected'); // Gunakan setGlobalMqttStatus
       console.log('MQTT Disconnected (event handler).');
     };
-
     const handleReconnect = () => {
-      setMqttStatus('Reconnecting...');
+      setGlobalMqttStatus('Reconnecting...'); // Gunakan setGlobalMqttStatus
       console.log('MQTT Reconnecting...');
     };
 
     mqttClient.on('connect', handleConnect);
     mqttClient.on('message', handleMessage);
-    mqttClient.on('error', handleError);
-    mqttClient.on('close', handleClose);
-    mqttClient.on('reconnect', handleReconnect);
-
-    // Cleanup listeners saat mqttClient berubah atau komponen unmount
+    // ... (pasang listener lain) ...
     return () => {
-      console.log('MQTT Effect (2 - Client Instance Changed/Unmount): Removing event listeners.');
-      mqttClient.off('connect', handleConnect);
-      mqttClient.off('message', handleMessage);
-      mqttClient.off('error', handleError);
-      mqttClient.off('close', handleClose);
-      mqttClient.off('reconnect', handleReconnect);
+      // ... (lepas listener) ...
     };
-  // Dependensi: mqttClient (agar listener dipasang/dilepas saat instance client berubah), 
-  // dan fungsi setter state serta konstanta topik jika mereka bisa berubah (meskipun jarang).
-  }, [mqttClient, MQTT_TOPIC_STATUS_BASE, setDevices, setMqttStatus]);
+  // Tambahkan setGlobalMqttStatus dan setDevices ke dependensi jika digunakan di dalam handler
+  }, [mqttClient, MQTT_TOPIC_STATUS_BASE, setDevices, setGlobalMqttStatus]); 
 
   // 3. Effect untuk subscribe ketika client terkoneksi DAN daftar perangkat (devices) berubah
   useEffect(() => {

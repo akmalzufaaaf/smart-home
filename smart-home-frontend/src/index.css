@@ -1,92 +1,34 @@
 /* src/index.css */
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif; /* Menggunakan Inter sebagai pilihan utama */
-  line-height: 1.6; /* Sedikit lebih banyak ruang antar baris */
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
   font-weight: 400;
-
-  color-scheme: light; /* Fokus pada tema terang */
-  color: #212529; /* Warna teks utama lebih gelap untuk kontras di atas putih */
-  background-color: #F8F9FA; /* Background utama off-white/abu-abu sangat muda */
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+  color: #212529; /* Teks utama gelap */
+  background-color: #F8F9FA; /* Background utama off-white */
 }
-
-body {
-  margin: 0;
-  display: flex;
-  flex-direction: column; /* Mengatur agar konten bisa memanjang ke bawah */
-  min-height: 100vh;
-  /* Hapus place-items: center; agar konten tidak selalu di tengah secara vertikal jika panjang */
-}
-
-#root {
-  width: 100%;
-  flex-grow: 1; /* Memastikan #root mengisi sisa ruang jika body flex */
-  display: flex;
-  flex-direction: column;
-}
-
-a {
-  font-weight: 500;
-  color: #50A5F1; /* Warna aksen biru untuk link */
-  text-decoration: inherit;
-  transition: color 0.2s ease;
-}
-a:hover {
-  color: #4A90E2; /* Biru lebih gelap saat hover */
-}
-
-h1 {
-  font-size: 2.5em; /* Sedikit disesuaikan */
-  line-height: 1.2;
-  font-weight: 700; /* Lebih tebal untuk judul utama */
-  color: #343A40;
-  margin-bottom: 0.75em;
-}
-
-h2 {
-  font-size: 1.75em;
-  line-height: 1.3;
-  font-weight: 600;
-  color: #343A40;
-  margin-bottom: 0.5em;
-}
-
-h3 {
-  font-size: 1.25em;
-  line-height: 1.4;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.3em;
-}
-
+body { margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+#root { width: 100%; flex-grow: 1; display: flex; flex-direction: column; }
+a { font-weight: 500; color: #007BFF; text-decoration: none; transition: color 0.2s ease; } /* Biru standar untuk link */
+a:hover { color: #0056b3; }
+h1, h2, h3 { color: #343A40; } /* Warna judul sedikit lebih soft dari teks utama */
+/* ... (gaya tombol default bisa tetap atau disesuaikan) ... */
 button {
-  border-radius: 6px; /* Sedikit lebih kecil dari default vite */
+  border-radius: 6px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #50A5F1; /* Warna aksen untuk tombol default */
+  background-color: #007BFF; /* Biru sebagai warna utama tombol */
   color: white;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
-
 button:hover {
-  background-color: #4A90E2;
-  /* border-color: #4A90E2; (opsional jika ingin border juga) */
+  background-color: #0056b3;
 }
-
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color; /* Default Vite, bisa disesuaikan */
-  outline-color: #7ABCF5; /* Sesuaikan warna outline */
+button:disabled {
+  background-color: #ADCFF1;
+  cursor: not-allowed;
 }
-
-/* Menghilangkan styling default Vite untuk dark mode jika kita fokus ke light mode */
-/* @media (prefers-color-scheme: light) { ... }  bisa dihapus jika tidak ada variasi dark mode */
