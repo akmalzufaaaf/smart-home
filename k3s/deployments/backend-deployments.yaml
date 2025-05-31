@@ -6,7 +6,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: backend
@@ -35,7 +35,7 @@ spec:
                   key: password
             # MONGO_URI menggunakan variabel ATLAS_USER dan ATLAS_PASSWORD
             - name: MONGO_URI 
-              value: "mongodb+srv://$(ATLAS_USER):$(ATLAS_PASSWORD)@iot.7l2nbtx.mongodb.net/<NAMA_DATABASE_DI_ATLAS>?retryWrites=true&w=majority"
+              value: "mongodb+srv://$(ATLAS_USER):$(ATLAS_PASSWORD)@iot.7l2nbtx.mongodb.net/smart_home?retryWrites=true&w=majority"
             # Variabel MONGO_INITDB_ROOT_USERNAME dan PASSWORD tidak lagi diperlukan di sini
             # karena kita tidak menginisialisasi MongoDB lokal di klaster.
 
@@ -45,13 +45,13 @@ spec:
                   name: backend-secret # Pastikan secret ini ada dan berisi jwt-secret-key
                   key: jwt-secret-key
             - name: MQTT_BROKER_HOST
-              value: "broker.hivemq.com" 
+              value: "mqtt" # Nama Service MQTT di dalam klaster Kubernetes
             - name: MQTT_BROKER_PORT
-              value: "1883" 
+              value: "1883" # Port TCP internal MQTT Service
             - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
+              value: "/home/device" 
             - name: MQTT_TOPIC_STATUS_BASE
-              value: "b51328ec-42ca-4163-a699-c15ad7a4cae0/home/device" 
+              value: "/home/device" 
 ---
 apiVersion: v1
 kind: Service

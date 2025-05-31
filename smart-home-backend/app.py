@@ -7,6 +7,7 @@ from flask_cors import CORS
 from routes.device import device_bp
 from routes.rfid import rfid_bp
 from routes.logs import logs_bp
+from routes.users import users_bp # Impor blueprint users
 from mqtt_service import init_mqtt
 from services.device_service import update_device_status_from_mqtt, get_all_devices_status, register_new_device # Impor fungsi baru
 from database import Database # Impor Database
@@ -27,8 +28,8 @@ def create_user_if_not_exists(username, password_plain):
         print(f"User {username} already exists.")
 
 # # ...
-# with app.app_context():
-#     create_user_if_not_exists("admin", "adminpassword") # Ganti password ini! <-- KOMENTARI INI
+with app.app_context():
+    create_user_if_not_exists("admin", "adminpassword") # Ganti password ini! <-- KOMENTARI INI
 # # ...
 
 # Untuk /login, jika masih menggunakan users dictionary lokal, itu tidak masalah.
@@ -100,6 +101,7 @@ def get_status():
 app.register_blueprint(device_bp, url_prefix='/api') #need jwt
 app.register_blueprint(rfid_bp, url_prefix='/api')
 app.register_blueprint(logs_bp, url_prefix='/api')
+app.register_blueprint(users_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0') # host='0.0.0.0' agar bisa diakses dari luar kontainer jika perlu (untuk dev)

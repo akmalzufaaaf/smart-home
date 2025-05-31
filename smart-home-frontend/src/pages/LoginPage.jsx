@@ -1,8 +1,8 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { loginUser } from '../services/apiService';
+import { UserCircleIcon, LockClosedIcon, HomeModernIcon } from '@heroicons/react/24/outline'; // Impor ikon
 
-// Terima prop 'onLoginSuccess' untuk memberi tahu App.jsx bahwa login berhasil
 function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +15,7 @@ function LoginPage({ onLoginSuccess }) {
     setLoading(true);
     try {
       await loginUser({ username, password });
-      onLoginSuccess(); // Panggil callback setelah login sukses
+      onLoginSuccess();
     } catch (err) {
       setError(err.message || 'Login gagal. Periksa kembali username dan password.');
     } finally {
@@ -24,31 +24,42 @@ function LoginPage({ onLoginSuccess }) {
   };
 
   return (
-    <div>
-      <h2>Login Smarthome</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
+    <div className="login-page">
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="login-logo-container">
+          <HomeModernIcon className="login-logo-icon" /> {/* Contoh ikon logo */}
+          <h2>Login Smarthome</h2>
+        </div>
+        <div className="form-group">
           <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <div className="input-with-icon">
+            <UserCircleIcon className="input-icon" />
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Masukkan username" // Tambahkan placeholder
+              required
+            />
+          </div>
         </div>
-        <div>
+        <div className="form-group">
           <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="input-with-icon">
+            <LockClosedIcon className="input-icon" />
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Masukkan password" // Tambahkan placeholder
+              required
+            />
+          </div>
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" disabled={loading}>
+        {error && <p className="login-error">{error}</p>}
+        <button type="submit" disabled={loading} className="login-button">
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>

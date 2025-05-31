@@ -1,42 +1,566 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* src/App.css */
+
+/* Gaya Global Aplikasi jika perlu, misal max-width untuk konten utama */
+.app-container { /* Kamu bisa membungkus konten di App.jsx dengan div ini */
+  width: 100%;
+  /* max-width: 1280px; (sesuai default Vite, bisa disesuaikan) */
+  /* margin: 0 auto; (sesuai default Vite, bisa disesuaikan) */
+  /* padding: 2rem; (sesuai default Vite, bisa disesuaikan) */
+}
+
+/* --- Halaman Login --- */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh; /* Sisakan sedikit ruang jika ada footer/header global nanti */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-form {
+  background-color: #FFFFFF;
+  padding: 32px 40px; /* Padding lebih besar */
+  border-radius: 12px; /* Lebih rounded */
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1); /* Bayangan lebih soft */
+  width: 100%;
+  max-width: 420px;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.login-form h2 {
+  margin-bottom: 28px;
+  font-size: 1.8em;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.login-form .form-group { /* Mengganti div biasa agar lebih semantik */
+  margin-bottom: 20px;
+  text-align: left;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.login-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.95em;
 }
 
-.card {
-  padding: 2em;
+/* src/App.css - Tambahan untuk Login Page Icons */
+
+.login-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.read-the-docs {
-  color: #888;
+.login-logo-icon {
+  width: 60px; /* Sesuaikan ukuran logo */
+  height: 60px;
+  color: #0056b3; /* Warna biru tua untuk logo */
+  margin-bottom: 10px;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  color: #ADB5BD; /* Warna abu-abu untuk ikon input */
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  padding-left: 40px;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #DEE2E6; /* Border lebih soft */
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 1em;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+} /* Beri ruang untuk ikon di sebelah kiri */
+  /* Styling input lainnya tetap sama */
+
+.login-form input[type="text"]:focus,
+.login-form input[type="password"]:focus {
+  outline: none;
+  border-color: #50A5F1; /* Warna aksen */
+  box-shadow: 0 0 0 3px rgba(80, 165, 241, 0.15); /* Efek glow lebih soft */
+}
+
+.login-form .login-button { /* Kelas spesifik untuk tombol login */
+  width: 100%;
+  padding: 12px;
+  font-size: 1.05em;
+  margin-top: 10px; /* Sedikit spasi di atas tombol */
+}
+
+.login-error {
+  color: #E53E3E; /* Merah lebih modern untuk error */
+  margin-top: 16px;
+  font-size: 0.9em;
+}
+
+
+/* --- Halaman Dashboard --- */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px; /* Padding horizontal lebih besar */
+  flex-grow: 1; /* Agar mengisi sisa ruang di App.jsx */
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.dashboard-header h1 {
+  font-size: 2em; /* Sesuaikan dengan h1 global jika perlu */
+  margin: 0;
+}
+
+.mqtt-status { /* Kelas untuk status MQTT */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  color: #495057;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #CED4DA; /* Default abu-abu */
+}
+
+.status-indicator.connected {
+  background-color: #28A745; /* Hijau */
+}
+.status-indicator.disconnected {
+  background-color: #DC3545; /* Merah */
+}
+.status-indicator.reconnecting {
+  background-color: #FFC107; /* Kuning */
+  animation: pulse 1.5s infinite ease-in-out;
+}
+.status-indicator.error {
+  background-color: #DC3545; /* Merah */
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+
+.logout-button { /* Kelas spesifik untuk tombol logout */
+  background-color: transparent;
+  color: #E53E3E;
+  border: 1px solid #F5C6CB;
+  padding: 8px 16px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #F8D7DA;
+  border-color: #F1B0B7;
+  color: #721C24;
+}
+
+.dashboard-main h2 {
+  font-size: 1.5em; /* Sedikit lebih kecil dari h1 dashboard */
+  margin-bottom: 24px;
+}
+
+.devices-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* Ukuran kartu sedikit lebih kecil */
+  gap: 24px; /* Jarak antar kartu */
+}
+
+.dashboard-main .refresh-button { /* Styling untuk tombol refresh jika ada */
+  margin-top: 24px;
+  background-color: #6C757D; /* Abu-abu untuk aksi sekunder */
+}
+.dashboard-main .refresh-button:hover {
+  background-color: #5A6268;
+}
+
+
+/* --- Kartu Perangkat (DeviceCard) --- */
+.device-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0; /* Border lebih soft */
+  border-radius: 12px; /* Lebih rounded */
+  padding: 24px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05); /* Bayangan lebih soft */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  /* Hapus justify-content: space-between; agar konten bisa mengalir normal */
+}
+
+.device-card:hover {
+  transform: translateY(-3px); /* Efek angkat sedikit */
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.device-card .card-header { /* Untuk header kartu jika perlu (misal ikon + nama) */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.device-card .device-icon { /* Kelas untuk ikon perangkat */
+  width: 24px; /* Sesuaikan ukuran ikon */
+  height: 24px;
+  color: #50A5F1; /* Warna aksen untuk ikon */
+}
+
+.device-card h3 {
+  margin: 0; /* Hapus margin default dari h3 jika di dalam card-header */
+  font-size: 1.15em; /* Sedikit lebih besar */
+  font-weight: 600;
+}
+
+.device-card p {
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  color: #6C757D;
+  line-height: 1.4;
+}
+.device-card p:last-of-type { /* Hapus margin bawah pada paragraf terakhir */
+  margin-bottom: 16px; /* Beri jarak sebelum tombol */
+}
+
+.device-card p strong {
+  font-weight: 500; /* Sedikit lebih ringan dari 600 */
+  color: #343A40;
+}
+
+.device-card .toggle-button { /* Kelas spesifik untuk tombol toggle */
+  margin-top: auto; /* Mendorong tombol ke bawah jika konten kartu pendek */
+  padding: 10px 15px;
+  font-weight: 500;
+  width: 100%; 
+}
+
+.device-card.device-on .toggle-button { /* Styling tombol saat device ON */
+  background-color: #6C757D; /* Abu-abu untuk aksi "Matikan" */
+  color: white;
+}
+.device-card.device-on .toggle-button:hover {
+  background-color: #5A6268;
+}
+
+.device-card.device-off .toggle-button { /* Styling tombol saat device OFF */
+  background-color: #50A5F1; /* Warna aksen utama untuk aksi "Nyalakan" */
+  color: white;
+}
+.device-card.device-off .toggle-button:hover {
+  background-color: #4A90E2;
+}
+
+/* Indikator status visual pada kartu (opsional, bisa juga dengan mengubah warna ikon) */
+.device-card.device-on {
+  /* border-left: 5px solid #28A745; (sudah bagus, bisa dipertahankan) */
+  /* atau berikan sedikit glow hijau */
+  /* box-shadow: 0px 4px 15px rgba(40, 167, 69, 0.1); */
+}
+
+.device-card.device-off {
+  /* border-left: 5px solid #CED4DA; (sudah bagus, bisa dipertahankan) */
+}
+
+/* Untuk pesan loading/error/belum ada perangkat di dashboard */
+.dashboard main > p { /* Target p langsung di dalam main */
+  text-align: center;
+  font-size: 1.1em;
+  color: #6C757D;
+  margin-top: 40px;
+}
+
+/* src/App.css - Tambahkan atau modifikasi */
+
+/* ... (styling yang sudah ada) ... */
+
+/* Layout Aplikasi dengan Navigasi */
+.app-layout {
+  display: flex;
+  flex-direction: column; /* Atau row jika sidebar */
+  min-height: 100vh;
+}
+
+.main-nav {
+  background-color: #FFFFFF;
+  padding: 0.8rem 2.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #E9ECEF;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.main-nav .nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav .nav-brand a {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Jarak antara ikon brand dan teks */
+  font-size: 1.4em; /* Sedikit disesuaikan */
+  /* Styling lain untuk .nav-brand a sudah ada */
+}
+
+.nav-brand-icon {
+  width: 28px; /* Ukuran ikon brand */
+  height: 28px;
+}
+
+.nav-menu-icon {
+  width: 18px; /* Ukuran ikon menu */
+  height: 18px;
+  margin-right: 8px; /* Jarak ikon dengan teks menu */
+  vertical-align: middle; /* Agar sejajar dengan teks */
+  position: relative; /* Untuk penyesuaian posisi jika perlu */
+  top: -1px; /* Sedikit penyesuaian vertikal */
+}
+
+.main-nav ul li a {
+  display: flex; /* Agar ikon dan teks bisa sejajar */
+  align-items: center;
+}
+
+.logout-button-nav {
+  display: flex;
+  align-items: center;
+}
+
+.logout-icon-button {
+  width: 16px;
+  height: 16px;
+  /* margin-right: 6px; (sudah ada di .nav-menu-icon) */
+}
+
+.main-nav .nav-brand a {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #0056b3; /* Biru tua untuk brand */
+  text-decoration: none;
+}
+
+.main-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-grow: 1; /* Biarkan item menu mengambil ruang yang tersedia */
+  padding-left: 30px; /* Jarak dari brand */
+}
+
+.main-nav ul li a {
+  color: #495057;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+
+.main-nav ul li a:hover,
+.main-nav ul li a.active {
+  background-color: #E9F2FF;
+  color: #0056b3;
+}
+
+.main-nav .nav-right-section { /* Wadah baru untuk item di kanan */
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Jarak antara status MQTT dan tombol logout */
+}
+
+.mqtt-status-nav { /* Styling untuk status MQTT di navigasi */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em; /* Sedikit lebih kecil */
+  color: #495057;
+  padding: 6px 10px;
+  background-color: #F8F9FA; /* Background soft */
+  border-radius: 6px;
+}
+
+/* Tombol Logout di Navigasi */
+.logout-button-nav {
+  background-color: transparent; /* Tombol transparan */
+  color: #007BFF;         /* Teks biru */
+  border: 1px solid #BBDDFF; /* Border biru muda */
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9em; /* Sesuaikan ukuran agar serasi */
+  margin-left: 20px; /* Memberi jarak dari item menu lain */
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.logout-button-nav { /* Tombol logout di navigasi */
+  background-color: transparent;
+  color: #E53E3E; /* Warna font merah untuk logout */
+  border: 1px solid transparent; /* Hapus border default atau buat lebih subtle */
+  padding: 8px 12px; /* Sesuaikan padding */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logout-button-nav:hover {
+  background-color: #FFF5F5; /* Latar belakang merah sangat muda saat hover */
+  color: #C53030; /* Merah lebih gelap saat hover */
+}
+
+/* Sisa Styling (Area Konten, Tabel, dll. tetap sama seperti sebelumnya jika sudah OK) */
+.content-area {
+  flex-grow: 1;
+  padding: 24px 32px; /* Padding untuk area konten */
+  background-color: #F8F9FA; /* Warna background utama halaman (off-white) */
+}
+
+.page-container {
+  background-color: #FFFFFF;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.06); /* Bayangan halus untuk kontainer halaman */
+}
+
+/* Styling Tabel Sederhana */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 0.95em;
+}
+
+table th, table td {
+  border: 1px solid #DEE2E6;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table th {
+  background-color: #F1F3F5;
+  font-weight: 600;
+  color: #495057;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #F8F9FA;
+}
+
+table tbody tr:hover {
+  background-color: #E9ECEF;
+}
+
+/* src/App.css - Tambahkan di akhir atau di file terpisah */
+
+.manage-devices-page h3 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #E9ECEF;
+  padding-bottom: 10px;
+}
+
+.add-device-form {
+  background-color: #F8F9FA; /* Background form sedikit berbeda */
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #DEE2E6;
+}
+
+.add-device-form .form-row {
+  display: flex;
+  flex-wrap: wrap; /* Agar responsif */
+  gap: 20px; /* Jarak antar field */
+  margin-bottom: 20px;
+}
+
+.add-device-form .form-group {
+  flex: 1; /* Agar field mengisi ruang yang tersedia */
+  min-width: 200px; /* Lebar minimum sebelum wrap */
+  margin-bottom: 0; /* Hapus margin bawah default karena sudah ada gap */
+}
+
+.add-device-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.add-device-form input[type="text"],
+.add-device-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #CED4DA;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 0.95em;
+}
+.add-device-form select {
+    appearance: none; /* Untuk styling select yang lebih kustom jika diinginkan */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 0.9em;
+    padding-right: 2.5rem; /* Ruang untuk panah dropdown */
+}
+
+
+.add-device-form .add-button {
+  background-color: #28A745; /* Hijau untuk tombol tambah */
+  color: white;
+  padding: 10px 20px;
+}
+.add-device-form .add-button:hover {
+  background-color: #218838;
+}
+
+.devices-table .delete-button {
+  background-color: #E53E3E; /* Merah untuk tombol hapus */
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  border: none;
+}
+.devices-table .delete-button:hover {
+  background-color: #C53030;
 }

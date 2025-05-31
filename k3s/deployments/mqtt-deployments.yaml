@@ -1,0 +1,86 @@
+# k3s/deployments/mqtt-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:latest # Atau versi spesifik
+          ports:
+            - name: mqtt-tcp
+              containerPort: 1883
+            - name: mqtt-ws
+              containerPort: 9001
+          volumeMounts:
+            - name: mosquitto-config-volume
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf # Penting untuk mount file, bukan direktori
+            - name: mosquitto-data-volume
+              mountPath: /mosquitto/data
+            - name: mosquitto-log-volume # Opsional, jika ingin log persisten
+              mountPath: /mosquitto/log
+      volumes:
+        - name: mosquitto-config-volume
+          configMap:
+            name: mosquitto-config # Nama ConfigMap yang dibuat sebelumnya
+        - name: mosquitto-data-volume
+          persistentVolumeClaim:
+            claimName: mosquitto-data-pvc
+        - name: mosquitto-log-volume # Opsional
+          persistentVolumeClaim:
+            claimName: mosquitto-log-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mosquitto-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # Ukuran untuk data MQTT
+---
+apiVersion: v1
+kind: PersistentVolumeClaim # Opsional, untuk log
+metadata:
+  name: mosquitto-log-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt
+  labels:
+    app: mosquitto
+spec:
+  selector:
+    app: mosquitto
+  ports:
+    - name: mqtt-tcp
+      protocol: TCP
+      port: 1883       # Port Service untuk TCP
+      targetPort: 1883
+    - name: mqtt-ws
+      protocol: TCP
+      port: 9001       # Port Service untuk WebSocket
+      targetPort: 9001
+  type: NodePort # Atau LoadBalancer jika Anda ingin akses eksternal langsung ke port ini
+                 # Untuk awal, NodePort lebih mudah di-debug
