@@ -17,6 +17,8 @@ CORS(app)
 app.config.from_object(Config)
 jwt = JWTManager(app)
 
+init_mqtt(app_db_updater=update_device_status_from_mqtt)
+
 # Fungsi untuk membuat user baru (bisa dijadikan endpoint terpisah jika perlu)
 def create_user_if_not_exists(username, password_plain):
     db = Database()
@@ -35,7 +37,6 @@ with app.app_context():
 # Untuk /login, jika masih menggunakan users dictionary lokal, itu tidak masalah.
 # Jika /login sudah diubah untuk cek ke DB, kamu mungkin perlu menyederhanakannya sementara
 # atau pastikan operasi db.users_collection.find_one() tidak error jika koleksi belum ada.
-init_mqtt(app_db_updater=update_device_status_from_mqtt)
 
 @app.route("/login", methods=["POST"])
 def login():

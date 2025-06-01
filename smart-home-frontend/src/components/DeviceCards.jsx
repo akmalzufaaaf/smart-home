@@ -9,7 +9,23 @@ import {
 
 // Terima prop onToggle dari parent
 function DeviceCard({ device, onToggle }) {
-  if (!device) return null;
+  console.log("DeviceCard RENDERED with device:", device, "and onToggle:", typeof onToggle); // LOG A.1
+
+  if (!device || typeof device.device_id === 'undefined') {
+    console.warn("DeviceCard: device prop is null or missing device_id", device);
+    return null;
+  }
+
+  const handleInternalToggleClick = () => {
+    const newAction = device.status === 'ON' ? 'OFF' : 'ON';
+    console.log(`DeviceCard: Button clicked! deviceId: ${device.device_id}, newAction: ${newAction}`); // LOG A.2
+    if (typeof onToggle === 'function') {
+      console.log("DeviceCard: Calling onToggle prop..."); // LOG A.3
+      onToggle(device.device_id, newAction);
+    } else {
+      console.error("DeviceCard: onToggle prop is NOT a function or is undefined!", onToggle); // LOG A.4
+    }
+  };
 
   // PERBAIKAN: Definisikan sebagai fungsi arrow yang benar
   const handleToggleClick = () => { 
@@ -45,7 +61,7 @@ function DeviceCard({ device, onToggle }) {
       </div>
       <p>Tipe: {deviceType}</p>
       <p>Status: <strong>{deviceStatus}</strong></p>
-      <button onClick={handleToggleClick} className="toggle-button">
+      <button onClick={handleInternalToggleClick} className="toggle-button">
         {deviceStatus === 'ON' ? 'Matikan' : 'Nyalakan'}
       </button>
     </div>

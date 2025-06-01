@@ -8,7 +8,7 @@ import {
   MQTT_USERNAME,
   MQTT_PASSWORD,
   MQTT_TOPIC_STATUS_BASE, // Ini harusnya base topic seperti "home/device" atau apa pun yang Anda set
-} from '../config/contants.js'; // PASTIKAN NAMA FILE INI BENAR
+} from '../config/constants.js'; // PASTIKAN NAMA FILE INI BENAR
 
 function DashboardPage({ onLogout, setGlobalMqttStatus }) { // Terima setGlobalMqttStatus
   const [devices, setDevices] = useState([]);
@@ -201,8 +201,18 @@ function DashboardPage({ onLogout, setGlobalMqttStatus }) { // Terima setGlobalM
   }, [mqttClient, mqttClient?.connected, devices, MQTT_TOPIC_STATUS_BASE]); 
 
 
-  const handleToggleDevice = async (deviceId, action) => { /* ... seperti sebelumnya ... */ };
-
+  const handleToggleDevice = async (deviceId, action) => {
+    console.log(`DashboardPage: handleToggleDevice CALLED. DeviceId: ${deviceId}, Action: ${action}`); // LOG B.1
+    try {
+      console.log("DashboardPage: Attempting to call toggleDeviceApi..."); // LOG B.2
+      const response = await toggleDeviceApi(deviceId, action); // Pastikan action sudah ON/OFF
+      console.log(`DashboardPage: Toggle API response for ${deviceId}:`, response);
+    } catch (err) {
+      console.error(`DashboardPage: Error toggling device ${deviceId}:`, err.message, err.response?.data);
+      alert(`Gagal mengubah status perangkat ${deviceId}: ${err.message}`);
+    }
+  };
+  
   return (
     <div className="dashboard">
       {/* Header yang menampilkan judul dan status MQTT sekarang ada di AppLayout */}

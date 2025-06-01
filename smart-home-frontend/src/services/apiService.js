@@ -1,6 +1,6 @@
 // src/services/apiService.js
 import axios from 'axios';
-import { API_BASE_URL } from '../config/contants.js';
+import { API_BASE_URL } from '../config/constants.js';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -158,13 +158,40 @@ export const fetchDevices = async () => {
   }
 };
 
+// src/services/apiService.js
+// ... (kode apiClient, getToken, dll. lainnya) ...
+
 export const toggleDeviceApi = async (deviceId, action) => {
+  console.log(`API Service: Preparing to send toggle request for deviceId: '${deviceId}', action: '${action}'`);
+  
+  if (!deviceId || typeof action === 'undefined') {
+    console.error("API Service: Invalid deviceId or action provided to toggleDeviceApi.", { deviceId, action });
+    // Anda bisa melempar error di sini atau mengembalikan Promise.reject agar bisa ditangkap
+    return Promise.reject(new Error("Invalid deviceId or action")); 
+  }
+
+  const payload = { action: action.toUpperCase() }; // Atau toLowerCase() sesuai kebutuhan backend
+  console.log("API Service: Payload to be sent:", payload);
+  const requestUrl = `/api/device/${deviceId}/toggle`;
+  console.log("API Service: Request URL:", `${API_BASE_URL}${requestUrl}`); // Tampilkan URL lengkap
+
   try {
-    const response = await apiClient.post(`/api/device/${deviceId}/toggle`, { action });
+    console.log("API Service: Attempting apiClient.post...");
+    const response = await apiClient.post(requestUrl, payload);
+    console.log(`API Service: Toggle response received for ${deviceId}:`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`Failed to toggle device ${deviceId}:`, error.response?.data || error.message);
-    throw error.response?.data || new Error(`Failed to toggle device ${deviceId}`);
+    // Interceptor response seharusnya sudah menangani error 401 untuk refresh token.
+    // Log ini akan menangkap error lain atau error setelah refresh gagal.
+    console.error(`API Service: ERROR during apiClient.post for toggleDevice ${deviceId}:`, error.response?.data || error.message, error);
+    
+    // Pastikan error dilempar kembali agar bisa ditangkap oleh pemanggil (handleToggleDevice di DashboardPage)
+    // sehingga pengguna bisa mendapatkan feedback (misalnya via alert).
+    if (error.response) {
+      throw error.response.data; // Lempar data error dari server jika ada
+    } else {
+      throw new Error(error.message || `Failed to toggle device ${deviceId}`);
+    }
   }
 };
 
