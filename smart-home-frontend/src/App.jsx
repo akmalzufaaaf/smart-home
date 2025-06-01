@@ -59,8 +59,7 @@ function AppLayout({ onLogout, children, mqttStatus }) {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
-  // State untuk mqttStatus sekarang dikelola di App.jsx agar bisa diteruskan ke AppLayout
-  const [globalMqttStatus, setGlobalMqttStatus] = useState('Disconnected'); 
+  const [globalMqttStatus, setGlobalMqttStatus] = useState('Disconnected'); // State global MQTT
 
   const checkAuth = useCallback(() => { /* ... seperti sebelumnya ... */ }, []);
   const handleAuthErrorLogout = useCallback(() => { /* ... seperti sebelumnya ... */ }, []);
@@ -87,22 +86,16 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
-                {/* Teruskan globalMqttStatus dan setGlobalMqttStatus ke AppLayout dan DashboardPage */}
-                <AppLayout onLogout={handleLogout} mqttStatus={globalMqttStatus}>
+                <AppLayout onLogout={handleLogout} mqttStatus={globalMqttStatus}> {/* mqttStatus diteruskan ke AppLayout */}
                   <Routes>
                     <Route 
                       path="/" 
                       element={<DashboardPage 
                                   onLogout={handleLogout} 
-                                  setGlobalMqttStatus={setGlobalMqttStatus} // Teruskan setter
+                                  setGlobalMqttStatus={setGlobalMqttStatus} // <-- PASTIKAN PROP INI DIKIRIM
                                 />} 
                     />
-                    <Route path="/users" element={<UserManagementPage />} />
-                    <Route path="/rfid-logs" element={<RfidLogPage />} />
-                    <Route path="/manage-devices" element={<ManageDevicesPage />} /> {/* Tambahkan rute ini */}
-                    {/* Tambahkan rute untuk Manajemen Perangkat nanti */}
-                    {/* <Route path="/manage-devices" element={<DeviceManagementPage />} /> */}
-                    <Route path="*" element={<Navigate to="/" />} />
+                    {/* ... rute lain ... */}
                   </Routes>
                 </AppLayout>
               </ProtectedRoute>
@@ -113,5 +106,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;

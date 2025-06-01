@@ -1,0 +1,39 @@
+# k3s/deployments/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: coelee/smarthome-frontend:v1.0 # GANTI DENGAN IMAGE ANDA
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80 # Port yang diexpose Nginx di dalam container
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80         # Port Service frontend (misalnya, port 80 jika ini layanan utama)
+      targetPort: 80   # Target port Nginx di container
+  type: NodePort # Atau LoadBalancer

@@ -1,0 +1,32 @@
+# Stage 1: Build React App (jika Anda ingin build di dalam Docker, opsional)
+# Jika Anda sudah menjalankan `npm run build` secara manual dan memiliki direktori `dist`,
+# Anda bisa melewati stage ini dan langsung ke Stage 2.
+# Namun, build di Docker memastikan lingkungan build yang konsisten.
+
+FROM node:18-alpine as builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve static files with Nginx
+FROM nginx:stable-alpine
+
+# Hapus konfigurasi Nginx default
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Salin konfigurasi Nginx kustom kita (akan kita buat di langkah berikutnya)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Salin hasil build aplikasi React ke direktori Nginx untuk disajikan
+# Jika Anda melakukan build di luar Docker (manual):
+# COPY ./dist /usr/share/nginx/html
+# Jika Anda melakukan build di dalam Docker (menggunakan Stage 1 di atas):
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose port 80 (port default Nginx)
+EXPOSE 80
+
+# Perintah untuk menjalankan Nginx di foreground
+CMD ["nginx", "-g", "daemon off;"]

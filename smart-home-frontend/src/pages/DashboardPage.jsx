@@ -1,28 +1,28 @@
 // src/pages/DashboardPage.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import mqtt from 'mqtt'; // Pastikan impor ini benar
+import mqtt from 'mqtt';
 import { fetchDevices, toggleDeviceApi } from '../services/apiService';
-import DeviceCard from '../components/DeviceCards.jsx'; // PERIKSA NAMA FILE ini (DeviceCard vs DeviceCards)
+import DeviceCard from '../components/DeviceCards.jsx'; // PASTIKAN NAMA FILE INI BENAR
 import {
-  MQTT_BROKER_URL,
+  MQTT_BROKER_URL, // Ini harusnya ws://<IP_VPS_ANDA>:<NODEPORT_MQTT_WS>
   MQTT_USERNAME,
   MQTT_PASSWORD,
-  MQTT_TOPIC_STATUS_BASE,
-} from '../config/contants.js'; // PERIKSA NAMA FILE ini (constants vs contants)
+  MQTT_TOPIC_STATUS_BASE, // Ini harusnya base topic seperti "home/device" atau apa pun yang Anda set
+} from '../config/contants.js'; // PASTIKAN NAMA FILE INI BENAR
 
-function DashboardPage({ onLogout }) {
+function DashboardPage({ onLogout, setGlobalMqttStatus }) { // Terima setGlobalMqttStatus
   const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [mqttClient, setMqttClient] = useState(null);
   
-  const devicesRef = useRef(devices); // Untuk akses `devices` terbaru di callback MQTT
-
+  const devicesRef = useRef(devices); 
   useEffect(() => {
     devicesRef.current = devices;
   }, [devices]);
 
   const loadDevices = useCallback(async () => {
+    // ... (fungsi loadDevices seperti sebelumnya, pastikan memanggil setDevices) ...
     setIsLoading(true);
     setError('');
     try {
@@ -46,70 +46,135 @@ function DashboardPage({ onLogout }) {
     } finally {
       setIsLoading(false);
     }
-  }, [onLogout]); // `onLogout` sebagai dependensi
+  }, [onLogout]);
 
   useEffect(() => {
     loadDevices();
-  }, [loadDevices]); // `loadDevices` sebagai dependensi
-
-  // --- STRUKTUR useEffect UNTUK MQTT ---
+  }, [loadDevices]);
 
   // 1. Effect untuk membuat dan membersihkan instance client MQTT
   useEffect(() => {
-    console.log('MQTT Effect (1 - Mount/Config Change): Attempting to initialize client...');
+    console.log('MQTT Effect (1 - Mount/Config Change): Attempting to initialize client with URL:', MQTT_BROKER_URL);
     const clientOptions = {
       clientId: `smarthome_frontend_${Math.random().toString(16).slice(2, 8)}`,
       username: MQTT_USERNAME,
       password: MQTT_PASSWORD,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000, // Default, biarkan klien mencoba reconnect otomatis
+      connectTimeout: 10000, // Tingkatkan timeout koneksi
+      reconnectPeriod: 5000, // Interval reconnect
     };
     if (!MQTT_USERNAME) delete clientOptions.username;
     if (!MQTT_PASSWORD) delete clientOptions.password;
 
     const client = mqtt.connect(MQTT_BROKER_URL, clientOptions);
-    setMqttClient(client); // Simpan instance client ke state
-    console.log('MQTT Effect (1 - Mount/Config Change): Client instance created and set.');
+    setMqttClient(client); 
+    console.log('MQTT Effect (1 - Mount/Config Change): Client instance created.');
+    if (typeof setGlobalMqttStatus === 'function') {
+        setGlobalMqttStatus('Connecting...');
+    }
 
-    // Cleanup effect: dijalankan saat komponen unmount atau konfigurasi broker berubah
     return () => {
       if (client) {
         console.log('MQTT Effect (1 - Unmount/Config Change): Cleaning up client (client.end).');
-        client.end(true); // Force close, hentikan upaya reconnect dari instance ini
+        client.end(true); 
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [MQTT_BROKER_URL, MQTT_USERNAME, MQTT_PASSWORD]); // Dependensi hanya pada konfigurasi broker
+  }, [MQTT_BROKER_URL, MQTT_USERNAME, MQTT_PASSWORD]); // Hanya dependensi ini
 
- // 2. Effect untuk menangani event-event dari mqttClient
+  // 2. Effect untuk menangani event-event dari mqttClient
   useEffect(() => {
-    if (!mqttClient) return;
+    if (!mqttClient) {
+      console.log('MQTT Effect (2 - Client Listeners): No client instance yet.');
+      return;
+    }
+
+    console.log('MQTT Effect (2 - Client Instance Ready): Attaching event listeners.');
+
     const handleConnect = () => {
-      setGlobalMqttStatus('Connected'); // Gunakan setGlobalMqttStatus
+      if (typeof setGlobalMqttStatus === 'function') setGlobalMqttStatus('Connected');
       console.log('MQTT: Connected!');
+      // Subscribe dilakukan di effect #3
     };
-    const handleMessage = (topic, message) => { /* ... logika handleMessage tetap sama, gunakan setDevices ... */ };
+
+    const handleMessage = (topic, message) => {
+      const messageString = message.toString().toUpperCase();
+      // Log paling dasar untuk setiap pesan yang masuk
+      console.log(`RAW MQTT MESSAGE RECEIVED: Topic='${topic}', Payload='${messageString}'`);
+      
+      // Pastikan MQTT_TOPIC_STATUS_BASE tidak kosong atau undefined
+      if (!MQTT_TOPIC_STATUS_BASE) {
+        console.error("MQTT_TOPIC_STATUS_BASE is not defined!");
+        return;
+      }
+      const baseTopicParts = MQTT_TOPIC_STATUS_BASE.split('/').length;
+      const topicParts = topic.split('/');
+      
+      if (topic.startsWith(MQTT_TOPIC_STATUS_BASE) && 
+          topic.endsWith("/status") && 
+          topicParts.length === baseTopicParts + 2) { 
+          
+        const deviceIdFromTopic = topicParts[baseTopicParts];
+        console.log(`MQTT DEBUG: Extracted deviceIdFromTopic: ${deviceIdFromTopic} from topic ${topic}`);
+
+        setDevices(prevDevices => {
+          console.log(`MQTT DEBUG: Updating devices state for ${deviceIdFromTopic}. prevDevices:`, prevDevices);
+          let deviceActuallyUpdated = false;
+          const updatedDevices = prevDevices.map(d => {
+            if (d.device_id === deviceIdFromTopic) {
+              if (d.status !== messageString) {
+                console.log(`MQTT DEBUG: Device found and status changed! ID: ${d.device_id}. Old status: ${d.status}, New status: ${messageString}`);
+                deviceActuallyUpdated = true;
+                return { ...d, status: messageString };
+              } else {
+                console.log(`MQTT DEBUG: Device found but status is the same. ID: ${d.device_id}. Status: ${messageString}`);
+              }
+            }
+            return d;
+          });
+
+          if (deviceActuallyUpdated) {
+            console.log(`MQTT DEBUG: Devices state WILL be updated. updatedDevices:`, updatedDevices);
+            return updatedDevices;
+          } else {
+            console.log(`MQTT DEBUG: No actual change in device statuses for ${deviceIdFromTopic}, or device not found. Returning previous state.`);
+            return prevDevices; 
+          }
+        });
+      } else {
+          console.warn("MQTT DEBUG: Message on unhandled topic structure or not a status update:", topic, "Base:", MQTT_TOPIC_STATUS_BASE);
+      }
+    };
+
     const handleError = (err) => {
-      setGlobalMqttStatus('Error'); // Gunakan setGlobalMqttStatus
+      if (typeof setGlobalMqttStatus === 'function') setGlobalMqttStatus('Error');
       console.error('MQTT Connection Error:', err.message, err); 
     };
+
     const handleClose = () => {
-      setGlobalMqttStatus('Disconnected'); // Gunakan setGlobalMqttStatus
+      if (typeof setGlobalMqttStatus === 'function') setGlobalMqttStatus('Disconnected');
       console.log('MQTT Disconnected (event handler).');
     };
+
     const handleReconnect = () => {
-      setGlobalMqttStatus('Reconnecting...'); // Gunakan setGlobalMqttStatus
+      if (typeof setGlobalMqttStatus === 'function') setGlobalMqttStatus('Reconnecting...');
       console.log('MQTT Reconnecting...');
     };
 
     mqttClient.on('connect', handleConnect);
     mqttClient.on('message', handleMessage);
-    // ... (pasang listener lain) ...
+    mqttClient.on('error', handleError);
+    mqttClient.on('close', handleClose);
+    mqttClient.on('reconnect', handleReconnect);
+
     return () => {
-      // ... (lepas listener) ...
+      console.log('MQTT Effect (2 - Client Instance Changed/Unmount): Removing event listeners.');
+      mqttClient.off('connect', handleConnect);
+      mqttClient.off('message', handleMessage);
+      mqttClient.off('error', handleError);
+      mqttClient.off('close', handleClose);
+      mqttClient.off('reconnect', handleReconnect);
     };
-  // Tambahkan setGlobalMqttStatus dan setDevices ke dependensi jika digunakan di dalam handler
-  }, [mqttClient, MQTT_TOPIC_STATUS_BASE, setDevices, setGlobalMqttStatus]); 
+  }, [mqttClient, MQTT_TOPIC_STATUS_BASE, setDevices, setGlobalMqttStatus]);
 
   // 3. Effect untuk subscribe ketika client terkoneksi DAN daftar perangkat (devices) berubah
   useEffect(() => {
@@ -118,6 +183,7 @@ function DashboardPage({ onLogout }) {
       devices.forEach(device => {
         if (device && typeof device.device_id !== 'undefined') {
           const topic = `${MQTT_TOPIC_STATUS_BASE}/${device.device_id}/status`;
+          console.log(`MQTT Attempting to subscribe to: ${topic}`); // Log sebelum subscribe
           mqttClient.subscribe(topic, { qos: 0 }, (err) => {
             if (err) {
               console.error(`MQTT: Failed to subscribe to ${topic}`, err);
@@ -127,33 +193,19 @@ function DashboardPage({ onLogout }) {
           });
         }
       });
-      // Di sini Anda mungkin ingin menambahkan logika untuk unsubscribe dari topik perangkat
-      // yang sudah tidak ada lagi di `devices` jika daftar perangkat bisa berkurang.
-      // Untuk saat ini, subscribe ulang ke topik yang sama biasanya tidak masalah.
+    } else {
+        if (mqttClient && mqttClient.connected) {
+            console.log('MQTT Effect (3 - Subscribe): No devices to subscribe to, or devices array is empty.');
+        }
     }
-  // Jalankan jika mqttClient, status koneksinya, atau daftar devices berubah.
   }, [mqttClient, mqttClient?.connected, devices, MQTT_TOPIC_STATUS_BASE]); 
 
 
-  const handleToggleDevice = async (deviceId, action) => {
-    try {
-      await toggleDeviceApi(deviceId, action);
-      // UI akan diupdate oleh pesan MQTT, bukan di sini secara optimis
-    } catch (err) {
-      alert(`Gagal mengubah status perangkat ${deviceId}: ${err.message}`);
-    }
-  };
+  const handleToggleDevice = async (deviceId, action) => { /* ... seperti sebelumnya ... */ };
 
   return (
     <div className="dashboard">
-      <header className="dashboard-header">
-        <h1>Kontrol Panel Smarthome</h1>
-        <div className="mqtt-status">
-          <span className={`status-indicator ${mqttStatus.toLowerCase()}`}></span>
-          Status MQTT: {mqttStatus}
-        </div>
-        <button onClick={onLogout} className="logout-button">Logout</button>
-      </header>
+      {/* Header yang menampilkan judul dan status MQTT sekarang ada di AppLayout */}
       <main className="dashboard-main">
         <h2>Perangkat Saya</h2>
         {isLoading && <p>Memuat perangkat...</p>}
@@ -166,7 +218,7 @@ function DashboardPage({ onLogout }) {
             {console.log("RENDERING devices in JSX:", devices)}
             {devices.map((device) => (
               <DeviceCard
-                key={device.device_id} // Pastikan device.device_id unik
+                key={device.device_id}
                 device={device}
                 onToggle={handleToggleDevice}
               />
