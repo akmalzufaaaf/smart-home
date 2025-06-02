@@ -223,9 +223,6 @@ export const fetchLogs = async () => { // Fungsi untuk mengambil semua log
   }
 };
 
-// src/services/apiService.js
-// ... (kode yang sudah ada) ...
-
 export const registerDeviceApi = async (deviceData) => {
   try {
     // Endpointnya adalah /api/device/register, bukan /api/devices/register
@@ -244,5 +241,35 @@ export const deleteDeviceApi = async (deviceId) => {
   } catch (error) {
     console.error(`Failed to delete device ${deviceId}:`, error.response?.data || error.message);
     throw error.response?.data || new Error(`Failed to delete device ${deviceId}`);
+  }
+};
+
+export const fetchValidRfids = async () => {
+  try {
+    const response = await apiClient.get('/api/rfid/valid_ids');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch valid RFIDs:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to fetch valid RFIDs');
+  }
+};
+
+export const addValidRfidApi = async (rfidData) => { // rfidData = { rfid_id: "...", user_assigned: "..." }
+  try {
+    const response = await apiClient.post('/api/rfid/valid_ids', rfidData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to add valid RFID:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to add valid RFID');
+  }
+};
+
+export const deleteValidRfidApi = async (rfidId) => {
+  try {
+    const response = await apiClient.delete(`/api/rfid/valid_ids/${rfidId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to delete valid RFID ${rfidId}:`, error.response?.data || error.message);
+    throw error.response?.data || new Error(`Failed to delete valid RFID ${rfidId}`);
   }
 };

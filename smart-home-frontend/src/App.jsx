@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
 import RfidLogPage from './pages/RfidLogPage';
 import ManageDevicesPage from './pages/ManageDevicesPage'; // Pastikan komponen ini sudah dibuat
+import ManageRfidPage from './pages/ManagesRfidPage';
 import { logoutUser, clearTokens } from './services/apiService';
 import {
   HomeIcon as DashboardIcon,
@@ -13,7 +14,8 @@ import {
   ClipboardDocumentListIcon as LogIcon,
   Cog6ToothIcon as ManageDeviceIcon,
   ArrowLeftOnRectangleIcon as LogoutIcon,
-  HomeModernIcon
+  HomeModernIcon,
+  KeyIcon // <-- TAMBAHKAN KeyIcon DI SINI
 } from '@heroicons/react/24/outline';
 import './App.css';
 
@@ -64,6 +66,7 @@ function AppLayout({ onLogout, children, mqttStatus }) {
           <li><NavLink to="/users"><UsersIcon className="nav-menu-icon" />Pengguna</NavLink></li>
           <li><NavLink to="/rfid-logs"><LogIcon className="nav-menu-icon" />Log RFID</NavLink></li>
           <li><NavLink to="/manage-devices"><ManageDeviceIcon className="nav-menu-icon" />Kelola Perangkat</NavLink></li>
+          <li><Link to="/manage-rfid"><KeyIcon className="nav-menu-icon" />Kelola RFID</Link></li>
         </ul>
         <div className="nav-right-section">
           <div className="mqtt-status-nav">
@@ -139,6 +142,8 @@ function App() {
                     <Route path="/users" element={<UserManagementPage />} />
                     <Route path="/rfid-logs" element={<RfidLogPage />} />
                     <Route path="/manage-devices" element={<ManageDevicesPage />} />
+                    <Route path="/manage-rfid" element={<ManageRfidPage />} />
+                    
                     
                     {/* Fallback untuk rute yang tidak cocok di dalam AppLayout, arahkan ke dashboard */}
                     <Route path="*" element={<Navigate to="/" replace />} /> 
