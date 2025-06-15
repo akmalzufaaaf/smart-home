@@ -14,3 +14,4 @@ class Database:
         self.logs_collection = self.db['logs']
         self.devices_collection = self.db['devices']
         self.valid_rfids_collection = self.db['valid_rfids'] # Tambahkan ini
+        self.rfid_logs_collection = self.db['rfid_logs']

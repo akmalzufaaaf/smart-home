@@ -59,3 +59,4 @@ def remove_existing_valid_rfid(rfid_id_to_delete):
         return jsonify({"message": f"RFID ID {rfid_id_to_delete} deleted successfully."}), 200
     else:
         return jsonify({"error": f"RFID ID {rfid_id_to_delete} not found or failed to delete."}), 404
+    

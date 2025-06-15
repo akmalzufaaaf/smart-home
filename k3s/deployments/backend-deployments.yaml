@@ -48,10 +48,6 @@ spec:
               value: "mqtt" # Nama Service MQTT di dalam klaster Kubernetes
             - name: MQTT_BROKER_PORT
               value: "1883" # Port TCP internal MQTT Service
-            - name: MQTT_TOPIC_DEVICE_CONTROL_BASE
-              value: "/home/device" 
-            - name: MQTT_TOPIC_STATUS_BASE
-              value: "/home/device" 
 ---
 apiVersion: v1
 kind: Service
